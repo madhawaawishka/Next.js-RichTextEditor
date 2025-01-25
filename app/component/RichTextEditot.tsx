@@ -1,17 +1,24 @@
-import React, { useEffect, useRef } from 'react';
+'use client';
+
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css'; // Import Quill styles
 
-const RichTextEditor = () => {
-  const editorRef = useRef<HTMLDivElement>(null); // Define the type for editorRef
-  const quillRef = useRef<Quill | null>(null); // Define the type for quillRef
+// Define the ref type for the RichTextEditor component
+export type RichTextEditorHandle = {
+  getContent: () => string;
+};
+
+const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const quillRef = useRef<Quill | null>(null);
 
   useEffect(() => {
     if (editorRef.current) {
       quillRef.current = new Quill(editorRef.current, {
         theme: 'snow',
         modules: {
-          toolbar: [        
+          toolbar: [
             [{ header: [1, 2, 3, false] }],
             ['bold', 'italic', 'underline', 'strike'],
             [{ list: 'ordered' }, { list: 'bullet' }],
@@ -23,19 +30,23 @@ const RichTextEditor = () => {
       });
     }
 
-    // Cleanup function to avoid memory leaks
     return () => {
-      if (quillRef.current) {
-        quillRef.current = null;
-      }
+      quillRef.current = null; // Cleanup to avoid memory leaks
     };
   }, []);
 
-  return (
-    <div>
-      <div ref={editorRef} style={{ height: '300px' }} />
-    </div>
-  );
-};
+  // Expose the getContent function to the parent component
+  useImperativeHandle(ref, () => ({
+    getContent: () => {
+      if (quillRef.current) {
+        return quillRef.current.root.innerHTML; // Return the HTML content
+      }
+      return '';
+    },
+  }));
 
+  return <div ref={editorRef} style={{ height: '300px' }} />;
+});
+
+RichTextEditor.displayName = 'RichTextEditor';
 export default RichTextEditor;
