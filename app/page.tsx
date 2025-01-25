@@ -1,4 +1,10 @@
-import RichTextEditor from "./component/RichTextEditot";
+'use client';
+import dynamic from 'next/dynamic';
+
+const RichTextEditor = dynamic(() => import('@/app/component/RichTextEditot'), { 
+  ssr: false 
+});
+
 
 export default function Home() {
   return (
